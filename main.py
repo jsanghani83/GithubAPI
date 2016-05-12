@@ -34,6 +34,10 @@ def check_for_dup_file(ref_name):
     return ref_name + '.txt'
 
 def upload_files_to_git(file, name_dicts):
+    if name_dicts.get('START', False):
+        settings.GIT_BRANCH = 'abap'
+    elif name_dicts.get('TABLE', False):
+        settings.GIT_BRANCH = 'table'
     params = dict()
 
     with open(file.name) as infile:
@@ -83,10 +87,6 @@ def main():
         for root, dirs, files in os.walk(settings.SAP_FILE_PATH):
             for file in files:
                 file_path = root +'/' + str(file)
-                if file.startswith('TABLE'):
-                    settings.GIT_BRANCH = 'table'
-                else:
-                    settings.GIT_BRANCH = 'abab'
                 file_reader(file_path)
         logging.info('STOP')
     except Exception as e:
