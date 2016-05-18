@@ -1,11 +1,14 @@
 '__author__' == 'egrove'
 import base64
 import os
+import sys
 import settings
 import logging
 import requests
 import json
 import traceback
+from hashlib import sha1
+
 
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 logging.info('Started')
@@ -20,6 +23,7 @@ def get_names(line):
         except:
             #todo:Pass for getting Author
             pass
+    print name_dict, "name_dict name_dict name_dict"
     return name_dict
 
 
@@ -33,41 +37,82 @@ def check_for_dup_file(ref_name):
             incrementer += 1
     return ref_name + '.txt'
 
+
+def githash(data):
+    # format is sha1("blob " + filesize + "\0" + data)
+    s = sha1()
+    s.update("blob %u\0" % len(data))
+    s.update(data)
+    return s.hexdigest()
+
+
 def upload_files_to_git(file, name_dicts):
+    commit_data = None
+    commit_response = ""
     if name_dicts.get('START', False):
         settings.GIT_BRANCH = 'abap'
     elif name_dicts.get('TABLE', False):
         settings.GIT_BRANCH = 'table'
 
-    if name_dicts.get('EMAIL', False):
-        settings.GIT_EMAIL = name_dicts.get('EMAIL')
-    print settings.GIT_EMAIL
     params = dict()
+    file_content = None
 
     with open(file.name) as infile:
-        content_encoded = base64.b64encode(infile.read())
+        file_content = infile.read()
+        content_encoded = base64.b64encode(file_content)
     params['message'] = file.name + " created"
     params['content'] = content_encoded
     params['branch'] = settings.GIT_BRANCH
     params['path'] = file.name
-    params['committer'] = {'name':name_dicts['AUTHOR'], 'email':settings.GIT_EMAIL}
+    params['committer'] = {'name': name_dicts.get('AUTHOR'), 'email': name_dicts.get("EMAIL")}
     url = settings.GITHUP_API_URL + file.name
+
     request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
+    print request_status, "request_status"
     if request_status.status_code == 201:
-        print file.name + ' is created'
+        commit_response = request_status.json()
     elif request_status.status_code == 422:
         new_params = dict()
         new_params['ref'] = settings.GIT_BRANCH
         new_params['path'] = file.name
         get_file = requests.get(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), params=new_params).json()
-        params['sha'] = get_file['sha']
-        params['message'] = file.name + " updated"
-        request_update_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
-        print file.name + ' updated'
-    return True
+        new_checksum = githash(file_content)
+        if new_checksum != get_file['sha']:
+            params['sha'] = get_file['sha']
+            params['message'] = file.name + " updated"
+            request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
+            commit_response = request_status.json()
+        else:
+            return None
+    else:
+        print "Got %s response code instead.. exiting..." % request_status.status_code
+    
+    print commit_response,"commit_response"
+
+    if "commit" in commit_response:
+        commit_data = {
+            "commit_url": commit_response["commit"]["html_url"],
+            "committer_details": commit_response["commit"]["committer"],
+            "file_path": commit_response["content"]["path"]
+        }
+
+    for base_commit in commit_response['commit']['parents']:
+        base = base_commit['sha']
+        head = commit_response['commit']['sha'] 
+        reponame = commit_response['commit']['html_url'].split("/")[-3]  
+        author_name = commit_response['commit']['author']['name']
+        url = 'http://demoavra.eu/api/get_delta.php?SAL_USER_ID=1&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(base,head,str(reponame),author_name)    
+        response = requests.get(url).json()
+        
+        if response['status'] == 1:
+            print response, "correct"
+        else:
+            print response, "failed"
+        return response
 
 
 def file_reader(filename):
+    commit_data = []
     search_for_start = True
     #search_for_finish = False
     with open(filename) as infile:
@@ -89,18 +134,25 @@ def file_reader(filename):
                     msg = name_dicts.get('START') or name_dicts.get('TABLE')
                     logging.info(msg +':: write-completed')
                     f_obj.close()
-                    upload_files_to_git(f_obj, name_dicts)
+                    _commit_data = upload_files_to_git(f_obj, name_dicts)
+                    commit_data.append(_commit_data) if _commit_data else None
                 else:
                     f_obj.writelines(each_line)
+    return commit_data
 
 
 def main():
+    commit_data = []
 
     try:
         for root, dirs, files in os.walk(settings.SAP_FILE_PATH):
             for file in files:
                 file_path = root +'/' + str(file)
-                file_reader(file_path)
+                _commit_data = file_reader(file_path)
+                print _commit_data, "_commit_data _commit_data"
+                commit_data.append(_commit_data) if _commit_data else None
+        logging.info("Please find the commit details for the day")
+        print commit_data, "commit_data commit_data final"
         logging.info('STOP')
     except Exception as e:
 
@@ -108,5 +160,3 @@ def main():
 
 if __name__ == '__main__':
      main()
-
-
