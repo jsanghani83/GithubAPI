@@ -71,6 +71,7 @@ def upload_files_to_git(file, name_dicts):
     print request_status, "request_status"
     if request_status.status_code == 201:
         commit_response = request_status.json()
+        is_created = True
     elif request_status.status_code == 422:
         new_params = dict()
         new_params['ref'] = settings.GIT_BRANCH
@@ -96,21 +97,41 @@ def upload_files_to_git(file, name_dicts):
             "file_path": commit_response["content"]["path"]
         }
 
-    for base_commit in commit_response['commit']['parents']:
-        base = base_commit['sha']
-        head = commit_response['commit']['sha'] 
-        reponame = commit_response['commit']['html_url'].split("/")[-3]  
-        author_name = commit_response['commit']['author']['name']
-        url = 'http://demoavra.eu/api/get_delta.php?SAL_USER_ID=1&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(base,head,str(reponame),author_name)    
-        response = requests.get(url).json()
-        
-        if response['status'] == 1:
-            print response, "correct"
+    file_name = commit_response['commit']['message']
+    if file_name.endswith('created'):
+        if commit_response['commit']['parents'] == []:
+            base_sha = 0
+            print base_sha, "base ----> first file commit_id"
         else:
-            print response, "failed"
-        return response
+            base_commit = commit_response['commit']['parents'][0]
+            base_sha = base_commit['sha']
+            print base_sha, "base ----> commit_id of previous file"
+        head_sha = commit_response['commit']['sha'] 
+        print head_sha, "head ----> current file commit_id"  
+    else:
+        res_url = '{}commits?path={}'.format(settings.GITHUP_API_URL.replace("contents/", ""), file_name.split(" ")[0])
+        file_history = requests.get(res_url).json()
+        print file_history, "file_history"
+        head_sha = file_history[0]['sha']
+        print head_sha, "head ----> updated file commit_id"
+        if len(file_history) > 1:
+            base_sha = file_history[1]['sha']
+            print base_sha, "base ----> created file commit_id"
+        else:
+            base_sha = head_sha
+    
+    reponame = commit_response['commit']['html_url'].split("/")[-3]
+    author_name = commit_response['commit']['author']['name']
+    url = 'http://demoavra.eu/api/get_delta.php?SAL_USER_ID=1&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(base_sha,head_sha,str(reponame),author_name)
+    response = requests.get(url).json()
+    
+    if response['status'] == 1:
+        print response, "correct"
+    else:
+        print response, "failed"
+    return response
 
-
+    
 def file_reader(filename):
     commit_data = []
     search_for_start = True
