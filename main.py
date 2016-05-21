@@ -99,14 +99,15 @@ def upload_files_to_git(file, name_dicts):
 
     file_name = commit_response['commit']['message']
     if file_name.endswith('created'):
+        head_sha = commit_response['commit']['sha']
         if commit_response['commit']['parents'] == []:
-            base_sha = 0
+            base_sha = head_sha
             print base_sha, "base ----> first file commit_id"
         else:
             base_commit = commit_response['commit']['parents'][0]
             base_sha = base_commit['sha']
             print base_sha, "base ----> commit_id of previous file"
-        head_sha = commit_response['commit']['sha'] 
+         
         print head_sha, "head ----> current file commit_id"  
     else:
         res_url = '{}commits?path={}'.format(settings.GITHUP_API_URL.replace("contents/", ""), file_name.split(" ")[0])
@@ -122,8 +123,12 @@ def upload_files_to_git(file, name_dicts):
     
     reponame = commit_response['commit']['html_url'].split("/")[-3]
     author_name = commit_response['commit']['author']['name']
-    url = 'http://demoavra.eu/api/get_delta.php?SAL_USER_ID=1&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(base_sha,head_sha,str(reponame),author_name)
+    url = 'http://192.168.1.88/githubapi/api/get_delta.php?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
+        base_sha,head_sha,
+        str(reponame),author_name)
+    import ipdb;ipdb.set_trace()
     response = requests.get(url).json()
+    import ipdb;ipdb.set_trace()
     
     if response['status'] == 1:
         print response, "correct"

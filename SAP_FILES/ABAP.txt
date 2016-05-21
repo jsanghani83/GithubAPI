@@ -1,31 +1,49 @@
-START:ZAQ_TEST_CLSD AUTHOR:ECC0458  EMAIL:PMOLINEUX@HOTMAIL.COM
-class-pool .
-*"* class pool for class ZAQ_TEST
+START:ZAQ_TEST_ACPUB AUTHOR:deivanai23  EMAIL:deivanai.sp@egrovesystems.com
+class ZAQ_TEST definition
+  public
+  final
+  create public .
 
-*"* local type definitions
-include ZAQ_TEST======================ccdef.
+public section.
 
-*"* class ZAQ_TEST definition
-*"* public declarations
-  include ZAQ_TEST======================cu.
-*"* protected declarations
-  include ZAQ_TEST======================co.
-*"* private declarations
-  include ZAQ_TEST======================ci.
-endclass. "ZAQ_TEST definition
+  class-data TEST type CHAR1 value 'X'. "#EC NOTEXT .
+  class-data TEST1 type CHAR1 value 'Y'. "#EC NOTEXT .
+  class-data TEST2 type CHAR1 .
 
-*"* macro definitions
-include ZAQ_TEST======================ccmac.
-*"* local class implementation
-include ZAQ_TEST======================ccimp.
+  methods CONSTRUCTOR .
+  class-methods HELLOWORLD .
+FINISH:ZAQ_TEST                                                                                                      CPUB
+START:ZAQ_TEST_BCPUB AUTHOR:deivanai  EMAIL:deivanai.sp@egrovesystems.com
+class ZAQ_TEST definition
+  public
+  final
+  create public .
 
-class ZAQ_TEST implementation.
-*"* method's implementations
-  include methods.
-endclass. "ZAQ_TEST implementation
+public section.
 
-FINISH:ZAQ_TEST                                                                                                      CLSD
-START:ZAQ_TEST_CPUB AUTHOR:ECC0458  EMAIL:PMOLINEUX@HOTMAIL.COM
+  class-data TEST type CHAR1 value 'X'. "#EC NOTEXT .
+  class-data TEST1 type CHAR1 value 'Y'. "#EC NOTEXT .
+  class-data TEST2 type CHAR1 .
+
+  methods CONSTRUCTOR .
+  class-methods HELLOWORLD .
+FINISH:ZAQ_TEST                                                                                                      CPUB
+START:ZAQ_TEST_CCPUB AUTHOR:deivanai23  EMAIL:wiswash@egrovesystems.com
+class ZAQ_TEST definition
+  public
+  final
+  create public .
+
+public section.
+
+  class-data TEST type CHAR1 value 'X'. "#EC NOTEXT .
+  class-data TEST1 type CHAR1 value 'Y'. "#EC NOTEXT .
+  class-data TEST2 type CHAR1 .
+
+  methods CONSTRUCTOR .
+  class-methods HELLOWORLD .
+FINISH:ZAQ_TEST                                                                                                      CPUB
+START:ZAQ_TEST_DCPUB AUTHOR:deivanai  EMAIL:wiswash@egrovesystems.com
 class ZAQ_TEST definition
   public
   final
