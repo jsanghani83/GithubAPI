@@ -123,12 +123,10 @@ def upload_files_to_git(file, name_dicts):
     
     reponame = commit_response['commit']['html_url'].split("/")[-3]
     author_name = commit_response['commit']['author']['name']
-    url = 'http://192.168.1.88/githubapi/api/get_delta.php?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
+    url = 'http://demoavra.eu/api/get_delta.php?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
         base_sha,head_sha,
         str(reponame),author_name)
-    import ipdb;ipdb.set_trace()
     response = requests.get(url).json()
-    import ipdb;ipdb.set_trace()
     
     if response['status'] == 1:
         print response, "correct"
@@ -146,6 +144,7 @@ def file_reader(filename):
             if search_for_start:
                 if each_line.startswith('START:') or each_line.startswith('START TABLE:'):
                     name_dicts = get_names(each_line)
+                    print name_dicts, "name_dicts"
                     search_for_start = False
                     #search_for_finish = True
                     file_name = name_dicts.get('START') or name_dicts.get('TABLE')
