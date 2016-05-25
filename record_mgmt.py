@@ -22,12 +22,13 @@ class Records(object):
 
     def __init__(self):
         self.downloaded_file = "CONFIG.txt"
-        self.has_downloaded = self.get_download_file()
+        #self.has_downloaded = self.get_download_file()
 
     def run(self):
-        if not self.has_downloaded:
-            print "Oops, The file from github couldn't downloaded, Please try after sometime!"
-            return
+        #if not self.has_downloaded:
+            #print "Oops, The file from github couldn't downloaded, Please try after sometime!"
+            #return
+        self.downloaded_file = settings.CONFIG_FILE
         self.extract_objects()
         self.file_handler()
     
@@ -42,7 +43,7 @@ class Records(object):
         except ValueError:
             last_line_num = 0
 
-        with open(self.downloaded_file, 'r') as f:
+        with open(settings.CONFIG_FILE, 'r') as f:
             one_record = ''
             for line_number, line in enumerate(f):
                 if not last_line_num or line_number > last_line_num:

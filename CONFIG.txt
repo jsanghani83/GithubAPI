@@ -1,3 +1,4 @@
+D
 OBJECT:TVAK                           EMAIL:PMOLINEUX@HOTMAIL.COM
 TVAK                            Sales Document Types                                          800ZQA3AU                  000000                                                                       000C      ECC0458                                                                            #             Avra Sales Order                                                           000000
 OBJECT:TVAKT                          EMAIL:PMOLINEUX@HOTMAIL.COM
