@@ -38,26 +38,26 @@ class Records(object):
     
     def extract_objects(self):
         self.record_list = []
-        try:
-            last_line_num = int(open(settings.CONFIG_LAST_LINE_FILE).read().strip('\n'))
-        except ValueError:
-            last_line_num = 0
+        #try:
+            #last_line_num = int(open(settings.CONFIG_LAST_LINE_FILE).read().strip('\n'))
+        #except ValueError:
+            #last_line_num = 0
 
         with open(settings.CONFIG_FILE, 'r') as f:
             one_record = ''
             for line_number, line in enumerate(f):
-                if not last_line_num or line_number > last_line_num:
-                    if line.startswith("OBJECT:"):
-                        if one_record:
-                            self.record_list.append(one_record)
-                            one_record = ''
-                    one_record += line
+                #if not last_line_num or line_number > last_line_num:
+                if line.startswith("OBJECT:"):
+                    if one_record:
+                        self.record_list.append(one_record)
+                        one_record = ''
+                one_record += line
             if one_record:
                 
                 self.record_list.append(one_record)
         print "self.record_list = ", self.record_list
-        with open(settings.CONFIG_LAST_LINE_FILE, 'w') as lf:
-            lf.write(str(line_number))
+        #with open(settings.CONFIG_LAST_LINE_FILE, 'w') as lf:
+            #lf.write(str(line_number))
         print "Done"
     
     def file_handler(self):
