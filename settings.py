@@ -14,3 +14,4 @@ CONFIG_GITHUB_LINK = "https://raw.githubusercontent.com/deivanai23/SAP_51/abap/C
 CONFIG_LAST_LINE_FILE = 'config_last_line.txt'
 GIT_BRANCH = 'abap'
 CONFIG_FILE = PROJECT_PATH + "/CONFIG/CONFIG.txt"
+CONFIG_GITHUB_URL = 'https://api.github.com/repos/AvraGitHub/SAP/contents/'

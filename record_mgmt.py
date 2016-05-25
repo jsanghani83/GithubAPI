@@ -82,7 +82,7 @@ class Records(object):
         params['branch'] = "abap"
         params['path'] = file_name
         params['committer'] = {'name': "1", 'email': obj_details.get("EMAIL")}
-        url = settings.GITHUP_API_URL + file_name
+        url = settings.CONFIG_GITHUB_URL + file_name
         request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
         if request_status.status_code == 201:
             commit_response = request_status.json()
