@@ -76,6 +76,7 @@ class Records(object):
         self.commit_file_code(file_content, file_name, obj_details)
     
     def commit_file_code(self, file_content, file_name, obj_details):
+        self.commit_response = {}
         self.email = obj_details.get("EMAIL")
         params = {}
         content_encoded = base64.b64encode(file_content)
