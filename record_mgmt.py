@@ -8,6 +8,7 @@
 import logging
 logging.basicConfig(filename='records.log', level=logging.INFO)
 
+import time
 import os
 import base64
 import requests
@@ -21,6 +22,7 @@ from main import githash
 class Records(object):
 
     def __init__(self):
+        self.github_rate_limit_count = 0
         self.downloaded_file = "CONFIG.txt"
         self.email = "PMOLINEUX@HOTMAIL.COM"
         #self.has_downloaded = self.get_download_file()
@@ -53,13 +55,11 @@ class Records(object):
                         self.record_list.append(one_record)
                         one_record = ''
                 one_record += line
-            if one_record:
-                
+            if one_record and one_record.startswith("OBJECT:"):
                 self.record_list.append(one_record)
         print "self.record_list = ", self.record_list
         #with open(settings.CONFIG_LAST_LINE_FILE, 'w') as lf:
             #lf.write(str(line_number))
-        print "Done"
     
     def file_handler(self):
         for each_object in self.record_list:
@@ -76,6 +76,7 @@ class Records(object):
         self.commit_file_code(file_content, file_name, obj_details)
     
     def commit_file_code(self, file_content, file_name, obj_details):
+        file_content = open(file_name).read()
         self.commit_response = {}
         self.email = obj_details.get("EMAIL")
         params = {}
@@ -86,6 +87,7 @@ class Records(object):
         params['path'] = file_name
         params['committer'] = {'name': "1", 'email': self.email}
         url = settings.CONFIG_GITHUB_URL + file_name
+        self.check_sleep_and_set_api_count()
         request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
         if request_status.status_code == 201:
             self.commit_response = request_status.json()
@@ -93,11 +95,13 @@ class Records(object):
             new_params = {}
             new_params['ref'] = 'abap'
             new_params['path'] = file_name
+            self.check_sleep_and_set_api_count()
             get_file = requests.get(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), params=new_params).json()
             new_checksum = githash(open(file_name).read())
             if new_checksum != get_file['sha']:
                 params['sha'] = get_file['sha']
                 params['message'] = file_name + " updated"
+                self.check_sleep_and_set_api_count()
                 request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
                 self.commit_response = request_status.json()
         self.log_to_db()
@@ -146,6 +150,12 @@ class Records(object):
             base_sha,head_sha,
             str(reponame),author_name)
         response = requests.get(url)
+    
+    def check_sleep_and_set_api_count(self):
+        if self.github_rate_limit_count > 28:
+            self.github_rate_limit_count = 0
+            time.sleep(30)
+        self.github_rate_limit_count += 1
 
 if __name__ == '__main__':
     r = Records()
