@@ -53,7 +53,7 @@ class Records(object):
     
     def get_or_create_files(self, each_object):
         _split_records = each_object.split()
-        obj_details = et_oself._gbject_details(_split_records[:2])
+        obj_details = self._get_object_details(_split_records[:2])
         file_name = "{}.txt".format(obj_details['OBJECT']) 
         with open(file_name, "a") as ofile:
             file_content = "\n".join(each_object.split('\n')[1:])
