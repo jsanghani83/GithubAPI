@@ -22,6 +22,7 @@ class Records(object):
 
     def __init__(self):
         self.downloaded_file = "CONFIG.txt"
+        self.email = "PMOLINEUX@HOTMAIL.COM"
         #self.has_downloaded = self.get_download_file()
 
     def run(self):
@@ -75,17 +76,18 @@ class Records(object):
         self.commit_file_code(file_content, file_name, obj_details)
     
     def commit_file_code(self, file_content, file_name, obj_details):
+        self.email = obj_details.get("EMAIL")
         params = {}
         content_encoded = base64.b64encode(file_content)
-        params['message'] = "{}_{}".format(str(datetime.now()), file_name)
+        params['message'] = file_name + " created"
         params['content'] = content_encoded
         params['branch'] = "abap"
         params['path'] = file_name
-        params['committer'] = {'name': "1", 'email': obj_details.get("EMAIL")}
+        params['committer'] = {'name': "1", 'email': self.email}
         url = settings.CONFIG_GITHUB_URL + file_name
         request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
         if request_status.status_code == 201:
-            commit_response = request_status.json()
+            self.commit_response = request_status.json()
         elif request_status.status_code == 422:
             new_params = {}
             new_params['ref'] = 'abap'
@@ -94,9 +96,10 @@ class Records(object):
             new_checksum = githash(open(file_name).read())
             if new_checksum != get_file['sha']:
                 params['sha'] = get_file['sha']
-                params['message'] = "{}_{}".format(str(datetime.now()), file_name)
+                params['message'] = file_name + " updated"
                 request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
-                commit_response = request_status.json()
+                self.commit_response = request_status.json()
+        self.log_to_db()
 
     @staticmethod
     def _get_object_details(_split):
@@ -106,6 +109,42 @@ class Records(object):
             _ = _o.split(":")
             r[_[0]] = _[1]
         return r
+    
+    def log_to_db(self):
+        if not self.commit_response:
+            return None
+
+        file_name = self.commit_response['commit']['message']
+        if file_name.endswith('created'):
+            head_sha = self.commit_response['commit']['sha']
+            if self.commit_response['commit']['parents'] == []:
+                base_sha = head_sha
+                print base_sha, "base ----> first file commit_id"
+            else:
+                base_commit = self.commit_response['commit']['parents'][0]
+                base_sha = base_commit['sha']
+                print base_sha, "base ----> commit_id of previous file"
+             
+            print head_sha, "head ----> current file commit_id"  
+        else:
+            res_url = '{}commits?path={}'.format(settings.CONFIG_GITHUB_URL.replace("contents/", ""), file_name.split(" ")[0])
+            file_history = requests.get(res_url).json()
+            print file_history, "file_history"
+            head_sha = file_history[0]['sha']
+            print head_sha, "head ----> updated file commit_id"
+            if len(file_history) > 1:
+                base_sha = file_history[1]['sha']
+                print base_sha, "base ----> created file commit_id"
+            else:
+                base_sha = head_sha
+        
+        reponame = self.commit_response['commit']['html_url'].split("/")[-3]
+        author_name = self.commit_response['commit']['author']['name']
+        url = settings.GET_DELTA_API + '?USER_EMAIL={}&SAP_OBJECT={}&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(self.email,
+            file_name.split('.')[0],
+            base_sha,head_sha,
+            str(reponame),author_name)
+        response = requests.get(url)
 
 if __name__ == '__main__':
     r = Records()

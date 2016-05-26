@@ -15,3 +15,5 @@ CONFIG_LAST_LINE_FILE = 'config_last_line.txt'
 GIT_BRANCH = 'abap'
 CONFIG_FILE = PROJECT_PATH + "/CONFIG/CONFIG.txt"
 CONFIG_GITHUB_URL = 'https://api.github.com/repos/AvraGitHub/SAP/contents/'
+
+GET_DELTA_API = "http://demoavra.eu/api/get_delta.php"
