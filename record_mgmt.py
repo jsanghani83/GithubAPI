@@ -25,31 +25,19 @@ class Records(object):
         self.github_rate_limit_count = 0
         self.downloaded_file = "CONFIG.txt"
         self.email = "PMOLINEUX@HOTMAIL.COM"
-        #self.has_downloaded = self.get_download_file()
+        self.murakh = ''
 
     def run(self):
-        #if not self.has_downloaded:
-            #print "Oops, The file from github couldn't downloaded, Please try after sometime!"
-            #return
         self.downloaded_file = settings.CONFIG_FILE
         self.extract_objects()
         self.file_handler()
     
-    def get_download_file(self):
-        os.system("wget {} -O {}".format(settings.CONFIG_GITHUB_LINK, self.downloaded_file))
-        return os.path.isfile(self.downloaded_file)
-    
     def extract_objects(self):
         self.record_list = []
-        #try:
-            #last_line_num = int(open(settings.CONFIG_LAST_LINE_FILE).read().strip('\n'))
-        #except ValueError:
-            #last_line_num = 0
 
         with open(settings.CONFIG_FILE, 'r') as f:
             one_record = ''
-            for line_number, line in enumerate(f):
-                #if not last_line_num or line_number > last_line_num:
+            for line in f:
                 if line.startswith("OBJECT:"):
                     if one_record:
                         self.record_list.append(one_record)
@@ -58,8 +46,6 @@ class Records(object):
             if one_record and one_record.startswith("OBJECT:"):
                 self.record_list.append(one_record)
         print "self.record_list = ", self.record_list
-        #with open(settings.CONFIG_LAST_LINE_FILE, 'w') as lf:
-            #lf.write(str(line_number))
     
     def file_handler(self):
         for each_object in self.record_list:
@@ -67,15 +53,15 @@ class Records(object):
     
     def get_or_create_files(self, each_object):
         _split_records = each_object.split()
-        obj_details = self._get_object_details(_split_records[:2])
+        obj_details = et_oself._gbject_details(_split_records[:2])
         file_name = "{}.txt".format(obj_details['OBJECT']) 
         with open(file_name, "a") as ofile:
-            #_record = ' '.join(_split_records[2:])
             file_content = "\n".join(each_object.split('\n')[1:])
+            self.murakh = file_content[32:62].strip()
             ofile.write(file_content)
-        self.commit_file_code(file_content, file_name, obj_details)
+        self.commit_file_code(file_name, obj_details)
     
-    def commit_file_code(self, file_content, file_name, obj_details):
+    def commit_file_code(self, file_name, obj_details):
         file_content = open(file_name).read()
         self.commit_response = {}
         self.email = obj_details.get("EMAIL")
@@ -146,7 +132,7 @@ class Records(object):
         reponame = self.commit_response['commit']['html_url'].split("/")[-3]
         author_name = self.commit_response['commit']['author']['name']
         url = settings.GET_DELTA_API + '?USER_EMAIL={}&SAP_OBJECT={}&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(self.email,
-            file_name.split('.')[0],
+            self.murakh,
             base_sha,head_sha,
             str(reponame),author_name)
         response = requests.get(url)
