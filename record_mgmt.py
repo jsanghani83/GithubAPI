@@ -106,28 +106,28 @@ class Records(object):
             return None
 
         file_name = self.commit_response['commit']['message']
-        if file_name.endswith('created'):
-            head_sha = self.commit_response['commit']['sha']
-            if self.commit_response['commit']['parents'] == []:
-                base_sha = head_sha
-                print base_sha, "base ----> first file commit_id"
-            else:
-                base_commit = self.commit_response['commit']['parents'][0]
-                base_sha = base_commit['sha']
-                print base_sha, "base ----> commit_id of previous file"
-             
-            print head_sha, "head ----> current file commit_id"  
+        #if file_name.endswith('created'):
+        head_sha = self.commit_response['commit']['sha']
+        if self.commit_response['commit']['parents'] == []:
+            base_sha = head_sha
+            print base_sha, "base ----> first file commit_id"
         else:
-            res_url = '{}commits?path={}'.format(settings.CONFIG_GITHUB_URL.replace("contents/", ""), file_name.split(" ")[0])
-            file_history = requests.get(res_url).json()
-            print file_history, "file_history"
-            head_sha = file_history[0]['sha']
-            print head_sha, "head ----> updated file commit_id"
-            if len(file_history) > 1:
-                base_sha = file_history[1]['sha']
-                print base_sha, "base ----> created file commit_id"
-            else:
-                base_sha = head_sha
+            base_commit = self.commit_response['commit']['parents'][0]
+            base_sha = base_commit['sha']
+            print base_sha, "base ----> commit_id of previous file"
+         
+        print head_sha, "head ----> current file commit_id"
+        #else:
+            #res_url = '{}commits?path={}'.format(settings.CONFIG_GITHUB_URL.replace("contents/", ""), file_name.split(" ")[0])
+            #file_history = requests.get(res_url).json()
+            #print file_history, "file_history"
+            #head_sha = file_history[0]['sha']
+            #print head_sha, "head ----> updated file commit_id"
+            #if len(file_history) > 1:
+                #base_sha = file_history[1]['sha']
+                #print base_sha, "base ----> created file commit_id"
+            #else:
+                #base_sha = head_sha
         
         reponame = self.commit_response['commit']['html_url'].split("/")[-3]
         author_name = self.commit_response['commit']['author']['name']

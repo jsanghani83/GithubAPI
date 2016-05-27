@@ -68,6 +68,7 @@ def upload_files_to_git(file, name_dicts):
     url = settings.GITHUP_API_URL + file.name
 
     request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
+    #import ipdb;ipdb.set_trace()
     print request_status, "request_status"
     if request_status.status_code == 201:
         commit_response = request_status.json()
@@ -82,6 +83,7 @@ def upload_files_to_git(file, name_dicts):
             params['sha'] = get_file['sha']
             params['message'] = file.name + " updated"
             request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
+            #import ipdb;ipdb.set_trace()
             commit_response = request_status.json()
         else:
             return None
@@ -97,41 +99,40 @@ def upload_files_to_git(file, name_dicts):
             "file_path": commit_response["content"]["path"]
         }
 
+    #import ipdb;ipdb.set_trace()
     file_name = commit_response['commit']['message']
-    if file_name.endswith('created'):
-        head_sha = commit_response['commit']['sha']
-        if commit_response['commit']['parents'] == []:
-            base_sha = head_sha
-            print base_sha, "base ----> first file commit_id"
-        else:
-            base_commit = commit_response['commit']['parents'][0]
-            base_sha = base_commit['sha']
-            print base_sha, "base ----> commit_id of previous file"
-         
-        print head_sha, "head ----> current file commit_id"  
+    #if file_name.endswith('created'):
+    head_sha = commit_response['commit']['sha']
+    if commit_response['commit']['parents'] == []:
+        base_sha = head_sha
+        print base_sha, "base ----> first file commit_id"
     else:
-        res_url = '{}commits?path={}'.format(settings.GITHUP_API_URL.replace("contents/", ""), file_name.split(" ")[0])
-        file_history = requests.get(res_url).json()
-        print file_history, "file_history"
-        head_sha = file_history[0]['sha']
-        print head_sha, "head ----> updated file commit_id"
-        if len(file_history) > 1:
-            base_sha = file_history[1]['sha']
-            print base_sha, "base ----> created file commit_id"
-        else:
-            base_sha = head_sha
+        base_commit = commit_response['commit']['parents'][0]
+        base_sha = base_commit['sha']
+        print base_sha, "base ----> commit_id of previous file"
+     
+    print head_sha, "head ----> current file commit_id"
+    #else:
+        #res_url = '{}commits?path={}'.format(settings.GITHUP_API_URL.replace("contents/", ""), file_name.split(" ")[0])
+        #file_history = requests.get(res_url).json()
+        #print file_history, "file_history"
+        #head_sha = file_history[0]['sha']
+        #print head_sha, "head ----> updated file commit_id"
+        #if len(file_history) > 1:
+            #base_sha = file_history[1]['sha']
+            #print base_sha, "base ----> created file commit_id"
+        #else:
+            #base_sha = head_sha
+        #import ipdb;ipdb.set_trace()
     
     reponame = commit_response['commit']['html_url'].split("/")[-3]
     author_name = commit_response['commit']['author']['name']
-    url = 'http://demoavra.eu/api/get_delta.php?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
+    url = 'http://192.168.1.88/githubapi/api/get_delta.php?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
         base_sha,head_sha,
         str(reponame),author_name)
-    response = requests.get(url).json()
+    response = requests.get(url)
     
-    if response['status'] == 1:
-        print response, "correct"
-    else:
-        print response, "failed"
+    print response.content
     return response
 
     
@@ -184,4 +185,4 @@ def main():
         logging.error(traceback.print_exc())
 
 if __name__ == '__main__':
-     main()
+    main()
