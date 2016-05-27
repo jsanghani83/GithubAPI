@@ -68,7 +68,6 @@ def upload_files_to_git(file, name_dicts):
     url = settings.GITHUP_API_URL + file.name
 
     request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
-    #import ipdb;ipdb.set_trace()
     print request_status, "request_status"
     if request_status.status_code == 201:
         commit_response = request_status.json()
@@ -83,7 +82,6 @@ def upload_files_to_git(file, name_dicts):
             params['sha'] = get_file['sha']
             params['message'] = file.name + " updated"
             request_status = requests.put(url, auth=(settings.GIT_USERNAME, settings.GIT_PASSWORD), data=json.dumps(params))
-            #import ipdb;ipdb.set_trace()
             commit_response = request_status.json()
         else:
             return None
@@ -99,7 +97,6 @@ def upload_files_to_git(file, name_dicts):
             "file_path": commit_response["content"]["path"]
         }
 
-    #import ipdb;ipdb.set_trace()
     file_name = commit_response['commit']['message']
     #if file_name.endswith('created'):
     head_sha = commit_response['commit']['sha']
@@ -123,11 +120,10 @@ def upload_files_to_git(file, name_dicts):
             #print base_sha, "base ----> created file commit_id"
         #else:
             #base_sha = head_sha
-        #import ipdb;ipdb.set_trace()
     
     reponame = commit_response['commit']['html_url'].split("/")[-3]
     author_name = commit_response['commit']['author']['name']
-    url = 'http://192.168.1.88/githubapi/api/get_delta.php?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
+    url = settings.GET_DELTA_API + '?USER_EMAIL={}&SAP_OBJECT=PROG&BASE={}&HEAD={}&REPO_NAME={}&USER_AUTHOR={}'.format(name_dicts.get("EMAIL"),
         base_sha,head_sha,
         str(reponame),author_name)
     response = requests.get(url)
