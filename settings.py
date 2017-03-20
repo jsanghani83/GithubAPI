@@ -16,4 +16,4 @@ GIT_BRANCH = 'abap'
 CONFIG_FILE = PROJECT_PATH + "/CONFIG/CONFIG.txt"
 CONFIG_GITHUB_URL = 'https://api.github.com/repos/AvraGitHub/SAP/contents/'
 
-GET_DELTA_API = "http://demoavra.eu/api/get_delta.php"
+GET_DELTA_API = "http://demosapefficiency.uk/api/get_delta.php"
